@@ -11,18 +11,40 @@ import java.io.IOException;
 
 @Component
 public class CustomAuthEntryPoint implements AuthenticationEntryPoint {
+
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException {
+    public void commence(HttpServletRequest request,
+                         HttpServletResponse response,
+                         AuthenticationException authException)
+            throws IOException, ServletException {
+
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
+
+        // Read error set in the JwtFilter
+        String errorType = (String) request.getAttribute("jwt_error");
+        String message;
+
+        if (errorType == null) {
+            message = "Unauthorized request";
+        } else {
+            switch (errorType) {
+                case "missing" -> message = "Missing Authorization header";
+                case "expired" -> message = "JWT token has expired";
+                case "malformed" -> message = "Malformed JWT token";
+                case "invalid_signature" -> message = "Invalid JWT signature";
+                case "invalid_token" -> message = "Invalid JWT token";
+                default -> message = "Authentication failed";
+            }
+        }
 
         String json = """
                 {
                     "status": 401,
                     "error": "Unauthorized",
-                    "message": "Invalid or missing token"
+                    "message": "%s"
                 }
-                """;
+                """.formatted(message);
 
         response.getWriter().write(json);
     }
