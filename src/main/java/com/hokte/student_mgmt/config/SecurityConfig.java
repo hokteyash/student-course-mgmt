@@ -1,6 +1,7 @@
 package com.hokte.student_mgmt.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hokte.student_mgmt.exceptions.CustomAuthEntryPoint;
 import com.hokte.student_mgmt.security.CustomUserDetailsService;
 import com.hokte.student_mgmt.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,9 @@ public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
+    @Autowired
+    private CustomAuthEntryPoint customAuthEntryPoint;
+
     @Bean
     public AuthenticationProvider authProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -42,32 +46,10 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    // for entry point
-    @Bean
-    public AuthenticationEntryPoint authenticationEntryPoint() {
-        return (request, response, authException) -> {
-            response.setStatus(401);
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            var out = response.getOutputStream();
-            var body = Map.of(
-                    "status",
-                    401,
-                    "error",
-                    "Unauthorized",
-                    "message",
-                    authException.getMessage(),
-                    "path",
-                    request.getServletPath()
-            );
-            var mapper = new ObjectMapper();
-            mapper.writeValue(out, body);
-            out.flush();
-        };
-    }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(e -> e.authenticationEntryPoint(customAuthEntryPoint))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests.requestMatchers("/api/auth/**").permitAll().anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
