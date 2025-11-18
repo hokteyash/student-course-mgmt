@@ -1,6 +1,7 @@
 package com.hokte.student_mgmt.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hokte.student_mgmt.exceptions.CustomAccessDeniedHandler;
 import com.hokte.student_mgmt.exceptions.CustomAuthEntryPoint;
 import com.hokte.student_mgmt.security.CustomUserDetailsService;
 import com.hokte.student_mgmt.security.JwtAuthenticationFilter;
@@ -13,6 +14,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -27,6 +29,7 @@ import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)   // it will enable @PreAuthorize
 public class SecurityConfig {
 
     @Autowired
@@ -37,6 +40,9 @@ public class SecurityConfig {
 
     @Autowired
     private CustomAuthEntryPoint customAuthEntryPoint;
+
+    @Autowired
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public AuthenticationProvider authProvider() {
@@ -49,7 +55,10 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .exceptionHandling(e -> e.authenticationEntryPoint(customAuthEntryPoint))
+                .exceptionHandling(e ->
+                        e.authenticationEntryPoint(customAuthEntryPoint)    // 401 handler (Authentication)
+                                .accessDeniedHandler(customAccessDeniedHandler)  // 403 handler (Authorization)
+                )
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests.requestMatchers("/api/auth/**").permitAll().anyRequest().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
