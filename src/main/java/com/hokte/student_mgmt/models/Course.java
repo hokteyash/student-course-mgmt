@@ -1,19 +1,22 @@
 package com.hokte.student_mgmt.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Set;
 
-@Entity
-@Data
-@Table(name = "courses")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "students")
+@EqualsAndHashCode(exclude = "students")
+@Entity
+@Table(name = "courses")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Course {
 
     @Id
@@ -29,5 +32,6 @@ public class Course {
     private String description;
 
     @ManyToMany(mappedBy = "courses")
+    @JsonIgnore
     private Set<Student> students;
 }
