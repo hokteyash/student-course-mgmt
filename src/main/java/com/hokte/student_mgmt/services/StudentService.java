@@ -53,8 +53,6 @@ public class StudentService {
     @Transactional
     public StudentDto createStudent(StudentDto studentDto) {
 
-        System.out.println("Enter into student creating process ....");
-
         // check for duplicate student
         if(userRepo.findByEmail(studentDto.getEmail()).isPresent()){
             throw new RuntimeException("Email already exists");
@@ -116,7 +114,7 @@ public class StudentService {
     }
 
     // Admin only Delete student and it's user
-    @PreAuthorize("hasAnyRole('ADMIN','STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN') or #id == authentication.principal.studentId")
     public StudentDto getStudentById(Long id) {
         Student student = studentRepo.findById(id).orElseThrow(() -> new RuntimeException("Student not found"));
         return toDto(student);

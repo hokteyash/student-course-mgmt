@@ -4,6 +4,7 @@ import com.hokte.student_mgmt.dto.StudentDto;
 import com.hokte.student_mgmt.services.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 

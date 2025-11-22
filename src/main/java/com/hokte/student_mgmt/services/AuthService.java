@@ -4,8 +4,10 @@ import com.hokte.student_mgmt.dto.AuthResponse;
 import com.hokte.student_mgmt.dto.LoginRequest;
 import com.hokte.student_mgmt.dto.RegisterRequest;
 import com.hokte.student_mgmt.models.Role;
+import com.hokte.student_mgmt.models.Student;
 import com.hokte.student_mgmt.models.User;
 import com.hokte.student_mgmt.repo.RoleRepo;
+import com.hokte.student_mgmt.repo.StudentRepo;
 import com.hokte.student_mgmt.repo.UserRepo;
 import com.hokte.student_mgmt.security.JwtUtil;
 import com.hokte.student_mgmt.security.UserPrincipal;
@@ -27,6 +29,9 @@ public class AuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private StudentRepo studentRepo;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -52,7 +57,9 @@ public class AuthService {
 
         userRepo.save(user);
 
-        UserPrincipal principal = UserPrincipal.fromUserEntity(user);
+        Student student = studentRepo.findByUser(user).orElse(null);
+
+        UserPrincipal principal = UserPrincipal.fromUserEntity(user,student);
 
         String token = jwtUtil.generateToken(principal);
 
@@ -69,7 +76,9 @@ public class AuthService {
         User user = userRepo.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + loginRequest.getEmail()));
 
-        UserPrincipal principal = UserPrincipal.fromUserEntity(user);
+        Student student = studentRepo.findByUser(user).orElse(null);
+
+        UserPrincipal principal = UserPrincipal.fromUserEntity(user,student);
 
         String token = jwtUtil.generateToken(principal);
         return new AuthResponse(token);
