@@ -1,5 +1,6 @@
 package com.hokte.student_mgmt.controllers;
 
+import com.hokte.student_mgmt.dto.ChangePasswordDto;
 import com.hokte.student_mgmt.dto.StudentDto;
 import com.hokte.student_mgmt.services.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +34,17 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getStudentById(id));
     }
 
+    // changing the students password
+    @PatchMapping("/{id}/change-password")
+    public ResponseEntity<String> changePassword(@PathVariable Long id, @RequestBody ChangePasswordDto changePasswordDto){
+        studentService.changePassword(id,changePasswordDto);
+        return ResponseEntity.ok("Password changed successfully");
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<StudentDto> deleteStudentById(@PathVariable Long id){
         return ResponseEntity.ok(studentService.deleteStudent(id));
     }
+
+
 }

@@ -1,5 +1,6 @@
 package com.hokte.student_mgmt.services;
 
+import com.hokte.student_mgmt.dto.ChangePasswordDto;
 import com.hokte.student_mgmt.dto.StudentDto;
 import com.hokte.student_mgmt.models.Course;
 import com.hokte.student_mgmt.models.Role;
@@ -118,5 +119,19 @@ public class StudentService {
     public StudentDto getStudentById(Long id) {
         Student student = studentRepo.findById(id).orElseThrow(() -> new RuntimeException("Student not found"));
         return toDto(student);
+    }
+
+    @PreAuthorize("#id == authentication.principal.studentId")
+    @Transactional
+    public void changePassword(Long id, ChangePasswordDto changePasswordDto) {
+        Student student = studentRepo.findById(id).orElseThrow(() -> new RuntimeException("Student not found"));
+        User user = student.getUser();
+        String oldPassword = changePasswordDto.getOldPassword();
+        String newPassword = changePasswordDto.getNewPassword();
+        if(!passwordEncoder.matches(oldPassword,user.getPassword())){
+            throw new RuntimeException("Old Password Doesn't Match");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepo.save(user);
     }
 }
